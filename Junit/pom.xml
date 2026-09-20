@@ -50,8 +50,8 @@
   </dependencies>
 
   <build>
-      <plugins>
     <finalName>application</finalName>
+      <plugins>
     <!-- JaCoCo Plugin for Code Coverage -->
     <plugin>
       <groupId>org.jacoco</groupId>
