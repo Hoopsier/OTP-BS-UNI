@@ -4,6 +4,7 @@ pipeline {
         jdk 'jdk21'
         maven 'Maven3'
     }
+        
     stages {
         stage('Compile') {
             steps {
@@ -30,5 +31,26 @@ pipeline {
                 junit '**/target/surefire-reports/*.xml'
             }
         }
+        environment{
+            DOCKERHUB_CREDENTIALS_ID = 'docker_hub'
+            DOCKERHUB_REPO = 'renanhoruz/otp_bs'
+            DOCKER_IMAGE_TAG = "v1"
+        }
+        stage('Build Docker Image'){
+          steps{
+            script{
+              docker.build("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}")
+            }
+          }
+        }
+        stage('Push Docker Image to Docker Hub'){
+            steps{
+                script{
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS_ID){
+                        docker.image("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}").push()
+                      }
+                  }
+              }
+          }
     }
 }
