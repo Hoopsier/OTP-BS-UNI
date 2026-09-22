@@ -8,8 +8,6 @@
   <version>1.0-SNAPSHOT</version>
 
   <name>Junit</name>
-  <!-- FIXME change it to the project's website -->
-  <url>http://www.example.com</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -53,29 +51,29 @@
     <finalName>application</finalName>
       <plugins>
     <!-- JaCoCo Plugin for Code Coverage -->
-    <plugin>
-      <groupId>org.jacoco</groupId>
-      <artifactId>jacoco-maven-plugin</artifactId>
-      <version>0.8.15</version>
-      <executions>
-      <!-- Attach JaCoCo agent -->
-      <execution>
+<plugin>
+  <groupId>org.jacoco</groupId>
+  <artifactId>jacoco-maven-plugin</artifactId>
+  <version>0.8.15</version>
+
+  <executions>
+    <!-- Attach JaCoCo agent -->
+    <execution>
       <goals>
         <goal>prepare-agent</goal>
       </goals>
-      </execution>
-      <!-- Generate coverage report -->
-      <execution>
-        <id>report</id>
-        <phase>test</phase>
-        <goals>
-          <goal>report</goal>
-        </goals>
-        </execution>
-      </executions>
-    </plugin>
+    </execution>
 
-      <plugin>
+    <!-- Generate coverage report -->
+    <execution>
+      <id>report</id>
+      <phase>verify</phase>
+      <goals>
+        <goal>report</goal>
+      </goals>
+    </execution>
+  </executions>
+</plugin>      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.5.1</version>
