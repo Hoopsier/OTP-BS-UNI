@@ -3,6 +3,7 @@ pipeline {
     tools {
         jdk 'jdk21'
         maven 'Maven3'
+        docker 'Docker'
     }
         environment{
             DOCKERHUB_CREDENTIALS_ID = 'docker_hub'
