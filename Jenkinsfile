@@ -4,6 +4,11 @@ pipeline {
         jdk 'jdk21'
         maven 'Maven3'
     }
+        environment{
+            DOCKERHUB_CREDENTIALS_ID = 'docker_hub'
+            DOCKERHUB_REPO = 'renanhoruz/otp_bs'
+            DOCKER_IMAGE_TAG = "v1"
+        }
         
     stages {
         stage('Compile') {
@@ -30,11 +35,6 @@ pipeline {
             steps {
                 junit '**/target/surefire-reports/*.xml'
             }
-        }
-        environment{
-            DOCKERHUB_CREDENTIALS_ID = 'docker_hub'
-            DOCKERHUB_REPO = 'renanhoruz/otp_bs'
-            DOCKER_IMAGE_TAG = "v1"
         }
         stage('Build Docker Image'){
           steps{
