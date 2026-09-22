@@ -5,13 +5,6 @@ pipeline {
         maven 'Maven3'
     }
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scmGit(
-    branches: [[name: 'main']],
-    userRemoteConfigs: [[url: 'https://github.com/Hoopsier/OTP-BS-UNI.git']])
-            }
-        }
         stage('Compile') {
             steps {
                 sh "mvn -f Junit clean install compile package"
