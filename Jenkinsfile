@@ -47,17 +47,32 @@ pipeline {
             }
           }
         }
-        stage('Push Docker Image to Docker Hub'){
-            steps{
-                script{
-                  withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh '''
-                        docker login -u &{DOCKER_USER} -p &{DOCKER_PASS}
-                        docker push &{DOCKERHUB_REPO%:&{DOCKER_IMAGE_TAG}
-                    '''
-                  }
-                }
+        
+        stage('Login to Docker Hub') {
+          steps {
+              withCredentials([
+                  usernamePassword(
+                      credentialsId: 'dockerhub-credentials',
+                      usernameVariable: 'DOCKER_USER',
+                      passwordVariable: 'DOCKER_PASS'
+                  )
+              ]) {
+                  sh '''
+                      echo "$DOCKER_PASS" | docker login \
+                        -u "$DOCKER_USER" \
+                        --password-stdin
+                  '''
               }
           }
-    }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                sh '''
+                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                    docker push ${IMAGE_NAME}:latest
+                '''
+            }
+        }
+  }
 }
