@@ -7,7 +7,7 @@ pipeline {
         environment{
             DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'
             DOCKERHUB_REPO = 'renanhoruz/otp_bs'
-            DOCKER_IMAGE_TAG = "v1"
+            DOCKER_IMAGE_TAG = "latest"
         }
         
     stages {
@@ -39,17 +39,24 @@ pipeline {
         stage('Build Docker Image'){
           steps{
             script{
-              docker.build("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}")
+              sh  '''
+                    docker build -t ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG} \
+                    -t ${DOCKERHUB_REPO}:latest \
+                    Junit
+                  '''
             }
           }
         }
         stage('Push Docker Image to Docker Hub'){
             steps{
                 script{
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS_ID){
-                        docker.image("${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}").push()
-                      }
+                  withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS_ID}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh '''
+                        docker login -u &{DOCKER_USER} -p &{DOCKER_PASS}
+                        docker push &{DOCKERHUB_REPO%:&{DOCKER_IMAGE_TAG}
+                    '''
                   }
+                }
               }
           }
     }
