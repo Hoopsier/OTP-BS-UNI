@@ -11,6 +11,11 @@ pipeline {
         }
         
     stages {
+      stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
         stage('Compile') {
             steps {
                 sh "mvn -f Junit clean install compile package"
@@ -69,10 +74,15 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 sh '''
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                    docker push ${IMAGE_NAME}:latest
+                    docker push ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}
+                    docker push ${DOCKERHUB_REPO}:latest
                 '''
             }
         }
+    }
+  post {
+    always {
+        sh 'docker logout || true'
+    }
   }
 }
