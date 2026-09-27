@@ -5,7 +5,7 @@ pipeline {
         maven 'Maven3'
     }
         environment{
-            DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'
+            DOCKERHUB_CREDENTIALS_ID = 'docker_hub'
             DOCKERHUB_REPO = 'renanhoruz/otp_bs'
             DOCKER_IMAGE_TAG = "latest"
         }
