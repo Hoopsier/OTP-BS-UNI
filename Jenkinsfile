@@ -3,10 +3,9 @@ pipeline {
     tools {
         jdk 'jdk21'
         maven 'Maven3'
-        docker 'Docker'
     }
         environment{
-            DOCKERHUB_CREDENTIALS_ID = 'docker_hub'
+            DOCKERHUB_CREDENTIALS_ID = 'Docker_Hub'
             DOCKERHUB_REPO = 'renanhoruz/otp_bs'
             DOCKER_IMAGE_TAG = "v1"
         }
