@@ -31,11 +31,6 @@ pipeline {
                 sh 'mvn -f Junit clean test'
             }
         }
-        stage('Deploy') {
-            steps {
-                echo 'Deploy stage completed'
-            }
-        }
         stage('Code Coverage') {
             steps {
                 sh 'mvn -f Junit jacoco:report' // jacoco:report just doesn't work automatically, I got it to work with external settings, that I could not reach on jenkins.
