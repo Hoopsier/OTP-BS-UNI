@@ -46,10 +46,19 @@ pipeline {
                 junit '**/target/surefire-reports/*.xml'
             }
         }
-        stage('Build Docker Image'){
-          steps{
-            script{
-              sh '''
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker build \
+                        -t ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG} \
+                        Junit
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
                     docker rm -f otp-bs-app || true
 
                     docker run -d \
@@ -65,8 +74,8 @@ pipeline {
                         ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}
                 '''
             }
-          }
         }
+
         
         stage('Login to Docker Hub') {
           steps {
