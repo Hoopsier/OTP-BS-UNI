@@ -34,6 +34,26 @@
         <version>4.13.2</version>
         <scope>test</scope>
     </dependency>
+    <!-- Source: https://mvnrepository.com/artifact/org.openjfx/javafx -->
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx</artifactId>
+        <version>21.0.10</version>
+        <type>pom</type>
+        <scope>compile</scope>
+    </dependency>
+      <!-- Source: https://mvnrepository.com/artifact/org.openjfx/javafx-controls -->
+    <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-controls</artifactId>
+        <version>21.0.10</version>
+        <scope>compile</scope>
+    </dependency>
+      <dependency>
+        <groupId>org.mariadb.jdbc</groupId>
+        <artifactId>mariadb-java-client</artifactId>
+        <version>3.1.2</version>
+    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -49,9 +69,44 @@
 
   <build>
     <finalName>application</finalName>
-      <plugins>
-    <!-- JaCoCo Plugin for Code Coverage -->
+    <plugins>
+      <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>3.6.3</version>
+          <configuration>
+            <mainClass>view.App</mainClass>
+          </configuration>
+        </plugin>
 <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
+    <artifactId>maven-shade-plugin</artifactId>
+    <version>3.6.1</version>
+
+    <executions>
+        <execution>
+            <phase>package</phase>
+
+            <goals>
+                <goal>shade</goal>
+            </goals>
+
+            <configuration>
+                <transformers>
+
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+
+                    <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <mainClass>application.App</mainClass>
+                    </transformer>
+
+                </transformers>
+            </configuration>
+        </execution>
+    </executions>
+</plugin>
+    <!-- JaCoCo Plugin for Code Coverage -->
+        <plugin>
   <groupId>org.jacoco</groupId>
   <artifactId>jacoco-maven-plugin</artifactId>
   <version>0.8.15</version>
@@ -73,7 +128,8 @@
       </goals>
     </execution>
   </executions>
-</plugin>      <plugin>
+      </plugin>      
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.5.1</version>
@@ -87,7 +143,15 @@
       </plugin>
     </plugins>
     <pluginManagement><!-- lock down plugins versions to avoid using Maven defaults (may be moved to parent pom) -->
-      <plugins>
+        <plugins>
+        <plugin>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-maven-plugin</artifactId>
+        <version>0.0.8</version>
+        <configuration>
+            <mainClass>application.App</mainClass>
+        </configuration>
+    </plugin>
         
         <!-- clean lifecycle, see https://maven.apache.org/ref/current/maven-core/lifecycles.html#clean_Lifecycle -->
         <plugin>
