@@ -8,6 +8,11 @@ pipeline {
             DOCKERHUB_CREDENTIALS_ID = 'dockerhub-credentials'
             DOCKERHUB_REPO = 'renanhoruz/otp_bs'
             DOCKER_IMAGE_TAG = "latest"
+
+            DB_PORT = '3306'
+            DB_NAME = 'temp_temperature'
+            DB_USER = 'hoopsy'
+            DB_PASSWORD = '123123'
         }
         
     stages {
@@ -44,11 +49,21 @@ pipeline {
         stage('Build Docker Image'){
           steps{
             script{
-              sh  '''
-                    docker build -t ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG} \
-                    -t ${DOCKERHUB_REPO}:latest \
-                    Junit
-                  '''
+              sh '''
+                    docker rm -f otp-bs-app || true
+
+                    docker run -d \
+                        --name otp-bs-app \
+                        --network host \
+                        -e DB_HOST=127.0.0.1 \
+                        -e DB_PORT=${DB_PORT} \
+                        -e DB_NAME=${DB_NAME} \
+                        -e DB_USER=${DB_USER} \
+                        -e DB_PASSWORD=${DB_PASSWORD} \
+                        -e DISPLAY=$DISPLAY \
+                        -v /tmp/.X11-unix:/tmp/.X11-unix \
+                        ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}
+                '''
             }
           }
         }
@@ -76,7 +91,7 @@ pipeline {
                 sh '''
                     docker push ${DOCKERHUB_REPO}:${DOCKER_IMAGE_TAG}
                     docker push ${DOCKERHUB_REPO}:latest
-                '''
+                   '''
             }
         }
     }
