@@ -1,22 +1,31 @@
-# What is this and what are the requirements to run the code:
+# What is this and what are the requirements to run the code
 
-Assignments in OTP-1. 
+Assignments in OTP-1.
 
 You need an AMD gpu and most likely linux to run the commands.
 
-## Technologies & Tools Used:
+## Technologies & Tools Used
+
 Docker, Java, JavaFX, Junit, MariaDB
-## Design Approach & Implementation Method:
+
+## Design Approach & Implementation Method
+
 GUI is made without FXML on javafx. Backend is with mariadb.
-## Testing & Quality Assurance Steps:
+
+## Testing & Quality Assurance Steps
+
 mvn test, mvn javafx:run
-## How to Run:
+
+## How to Run
+
 ```sh
 cd Junit
 xhost +local:docker
 sudo systemctl start mariadb
 sudo mariadb < DB.sql
-docker build -t otp_bs:latest .
+cd ..
+nvim .env
+# add DISPLAY type and DB_PASSWORD
 docker run -it \
      --network host \
      -e DB_HOST=127.0.0.1 \

@@ -1,0 +1,7 @@
+minikube delete
+minikube start \
+           --driver=docker \
+           --kubernetes-version=v1.35.1 \
+           --memory=3900 \
+           --cpus=2 \
+           --mount-string="/tmp/.X11-unix:/tmp/.X11-unix"

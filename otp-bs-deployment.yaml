@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: otp-bs
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: otp-bs
+
+  template:
+    metadata:
+      labels:
+        app: otp-bs
+
+    spec:
+      containers:
+        - name: otp-bs
+
+          image: otp-bs:latest
+          imagePullPolicy: Never
+
+          stdin: true
+          tty: true
+
+          env:
+            - name: DB_HOST
+              value: "host.minikube.internal"
+
+            - name: DB_PORT
+              value: "3306"
+
+            - name: DB_NAME
+              value: "temp_temperature"
+
+            - name: DB_USER
+              value: "hoopsy"
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: otp-bs-db
+                  key: password
+
+            - name: DISPLAY
+              value: ":0"
+
+          volumeMounts:
+            - name: x11-socket
+              mountPath: /tmp/.X11-unix
+
+      volumes:
+        - name: x11-socket
+          hostPath:
+            path: /tmp/.X11-unix
+            type: Directory
+

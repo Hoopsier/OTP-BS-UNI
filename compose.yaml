@@ -1,0 +1,23 @@
+services:
+  otp-bs:
+    image: otp-bs:latest
+    container_name: otp-bs
+
+    network_mode: host
+
+    environment:
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_NAME: temp_temperature
+      DB_USER: hoopsy
+      DB_PASSWORD: ${DB_PASSWORD}
+      DISPLAY: ${DISPLAY}
+
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+
+    devices:
+      - /dev/dri:/dev/dri
+
+    stdin_open: true
+    tty: true
