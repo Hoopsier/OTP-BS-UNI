@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.util.List;
@@ -133,8 +134,8 @@ public class App extends Application {
 
         double result = convertTemperature(
             temperature,
-            from.getName(),
-            to.getName());
+            from.getSymbol(),
+            to.getSymbol());
 
         resultLabel.setText(
             String.format("%s %.2f %s",
@@ -159,6 +160,15 @@ public class App extends Application {
     // Layout
     VBox layout = new VBox();
     layout.setPadding(new Insets(20));
+
+    // Make sure you have Noto Sans CJK installed, otherwise you can't see japanese
+    title.setFont(Font.font("Noto Sans CJK JP", 16));
+    inputLabel.setFont(Font.font("Noto Sans CJK JP", 16));
+    inputField.setFont(Font.font("Noto Sans CJK JP", 16));
+    fromLabel.setFont(Font.font("Noto Sans CJK JP", 16));
+    toLabel.setFont(Font.font("Noto Sans CJK JP", 16));
+    convertButton.setFont(Font.font("Noto Sans CJK JP", 16));
+    resultLabel.setFont(Font.font("Noto Sans CJK JP", 16));
     layout.getChildren().addAll(
         hBox,
         title,
@@ -178,13 +188,15 @@ public class App extends Application {
   }
 
   private float convertTemperature(float temperature, String from, String to) {
-    if (from.equals(rb.getString("celcius"))
-        && to.equals(rb.getString("fahrenheit"))) {
+    System.out.println(from);
+    if (from.equals("C")
+        && to.equals("F")) {
       return converter.celToFahr(temperature);
-    } else if (from.equals(rb.getString("fahrenheit"))
-        && to.equals(rb.getString("celcius"))) {
+    } else if (from.equals("F")
+        && to.equals("C")) {
       return converter.fahrToCel(temperature);
     }
+    System.out.println(to);
 
     // Same unit
     return temperature;
