@@ -4,11 +4,16 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import javafx.scene.control.Label;
 
 public class TempRecordDao {
+
+  private record HistoryRow(double inputValue, double outputValue, int fromId, int toId) {
+  }
 
   public void saveRecord(TempRecord record) {
 
@@ -44,39 +49,45 @@ public class TempRecordDao {
         ORDER BY id DESC
         LIMIT 5;
         """;
+    List<HistoryRow> rows = new ArrayList<>();
+
     try (
         Connection connection = DBConnection.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql);
         ResultSet rs = statement.executeQuery()) {
 
-      int i = 0;
-      while (rs.next() && i < labels.length) {
-        System.out.println(labels[i]);
-        System.out.println(i);
-        double inputValue = rs.getDouble("input_value");
-        double outputValue = rs.getDouble("output_value");
-        int fromId = rs.getInt("from_unit_id");
-        int toId = rs.getInt("to_unit_id");
-
-        String fromUnit = TemperatureLocaleDAO.getUnit(fromId, locale);
-        String toUnit = TemperatureLocaleDAO.getUnit(toId, locale);
-        String outputSymbol = String.valueOf(TemperatureLocaleDAO.getSymbol(toId, locale));
-
-        String text = MessageFormat.format(
-            rb.getString("history_format"),
-            String.valueOf(inputValue), fromUnit, toUnit, String.valueOf(Math.round(outputValue)), outputSymbol);
-        // fill the history labels
-        labels[i].setText(text);
-        i++;
-      }
-
-      // Clear any labels not filled (fewer than 5 records in DB)
-      for (; i < labels.length; i++) {
-        labels[i].setText("");
+      while (rs.next() && rows.size() < labels.length) {
+        rows.add(new HistoryRow(
+            rs.getDouble("input_value"),
+            rs.getDouble("output_value"),
+            rs.getInt("from_unit_id"),
+            rs.getInt("to_unit_id")));
       }
     } catch (Exception e) {
 
       e.printStackTrace();
+      return;
+    }
+
+    // Localize after the query is closed so the lookups reuse the pooled
+    // connection instead of opening a second one.
+    int i = 0;
+    for (HistoryRow row : rows) {
+      String fromUnit = TemperatureLocaleDAO.getUnit(row.fromId(), locale);
+      String toUnit = TemperatureLocaleDAO.getUnit(row.toId(), locale);
+      String outputSymbol = String.valueOf(TemperatureLocaleDAO.getSymbol(row.toId(), locale));
+
+      String text = MessageFormat.format(
+          rb.getString("history_format"),
+          String.valueOf(row.inputValue()), fromUnit, toUnit,
+          String.valueOf(Math.round(row.outputValue())), outputSymbol);
+      labels[i].setText(text);
+      i++;
+    }
+
+    // Clear any labels not filled (fewer than 5 records in DB)
+    for (; i < labels.length; i++) {
+      labels[i].setText("");
     }
   }
 }

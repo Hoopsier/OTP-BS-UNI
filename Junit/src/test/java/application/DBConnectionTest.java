@@ -1,54 +1,66 @@
 package application;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
+import javax.sql.DataSource;
 
+import com.zaxxer.hikari.HikariConfig;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
 public class DBConnectionTest {
 
+  @AfterEach
+  public void resetDataSource() {
+    DBConnection.setDataSource(null);
+  }
+
   @Test
-  public void shouldConnectUsingEnvironmentConfiguration() throws Exception {
+  public void shouldConfigurePoolFromEnvironment() {
     String host = System.getenv().getOrDefault("DB_HOST", "localhost");
     String port = System.getenv().getOrDefault("DB_PORT", "3306");
     String database = System.getenv().getOrDefault("DB_NAME", "temp_temperature");
     String user = System.getenv().getOrDefault("DB_USER", "hoopsy");
     String password = System.getenv().getOrDefault("DB_PASSWORD", "123123");
 
-    String expectedUrl = "jdbc:mariadb://" + host + ":" + port + "/" + database;
-    Connection connection = mock(Connection.class);
+    HikariConfig config = DBConnection.createConfig();
 
-    try (MockedStatic<DriverManager> driverManager = mockStatic(DriverManager.class)) {
-      driverManager
-          .when(() -> DriverManager.getConnection(expectedUrl, user, password))
-          .thenReturn(connection);
-
-      assertSame(connection, DBConnection.getConnection());
-
-      driverManager.verify(() -> DriverManager.getConnection(expectedUrl, user, password));
-    }
+    assertEquals("jdbc:mariadb://" + host + ":" + port + "/" + database, config.getJdbcUrl());
+    assertEquals(user, config.getUsername());
+    assertEquals(password, config.getPassword());
+    assertEquals(1, config.getMinimumIdle());
+    assertEquals(2, config.getMaximumPoolSize());
+    assertEquals(-1, config.getInitializationFailTimeout());
   }
 
   @Test
-  public void shouldPropagateConnectionErrors() {
+  public void shouldReturnConnectionFromDataSource() throws Exception {
+    DataSource dataSource = mock(DataSource.class);
+    Connection connection = mock(Connection.class);
+    when(dataSource.getConnection()).thenReturn(connection);
+
+    DBConnection.setDataSource(dataSource);
+
+    assertSame(connection, DBConnection.getConnection());
+  }
+
+  @Test
+  public void shouldPropagateConnectionErrors() throws Exception {
+    DataSource dataSource = mock(DataSource.class);
     SQLException failure = new SQLException("database unavailable");
+    when(dataSource.getConnection()).thenThrow(failure);
 
-    try (MockedStatic<DriverManager> driverManager = mockStatic(DriverManager.class)) {
-      driverManager
-          .when(() -> DriverManager.getConnection(anyString(), anyString(), anyString()))
-          .thenThrow(failure);
+    DBConnection.setDataSource(dataSource);
 
-      SQLException thrown = assertThrows(SQLException.class, DBConnection::getConnection);
+    SQLException thrown = assertThrows(SQLException.class, DBConnection::getConnection);
 
-      assertSame(failure, thrown);
-    }
+    assertSame(failure, thrown);
   }
 }

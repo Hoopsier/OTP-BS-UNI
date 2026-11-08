@@ -48,3 +48,17 @@ docker compose up --build
 ```
 
 If JavaFX still reports `Unable to open DISPLAY`, verify that `DISPLAY` is set, that `/tmp/.X11-unix` is mounted into the container, and that `xhost` allows the container's user (`root`).
+
+## Minikube startup latency
+
+MariaDB resolves the client address for every new database connection. The
+minikube node (`192.168.49.2`) has no reverse DNS entry, so that lookup waits
+for a timeout of several seconds. The app used to open a new connection for
+every DAO call, which made startup take minutes.
+
+`DBConnection` now uses a HikariCP pool, and the DAOs finish reading a result
+set before issuing the next query, so only the first connection pays the DNS
+cost. To remove even that delay, enable `skip-name-resolve` in the MariaDB
+server configuration and restart MariaDB. With `skip-name-resolve` enabled,
+grants match clients by IP, so make sure the `hoopsy` account also exists for
+`127.0.0.1` and `192.168.49.2` (or uses `%`).

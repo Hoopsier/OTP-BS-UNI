@@ -1,10 +1,14 @@
 package application;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DBConnection {
+import javax.sql.DataSource;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+
+public final class DBConnection {
 
   private static final String HOST = System.getenv().getOrDefault("DB_HOST", "localhost");
 
@@ -18,7 +22,44 @@ public class DBConnection {
 
   private static final String URL = "jdbc:mariadb://" + HOST + ":" + PORT + "/" + DATABASE;
 
+  /**
+   * Opening a physical MariaDB connection is expensive when the app runs in
+   * minikube. MariaDB resolves the client address for every new connection and
+   * the minikube node has no PTR record, so each connection waits for a DNS
+   * timeout. Reusing pooled connections pays that cost only once.
+   */
+  private static DataSource dataSource;
+
+  private DBConnection() {
+  }
+
   public static Connection getConnection() throws SQLException {
-    return DriverManager.getConnection(URL, USER, PASSWORD);
+    return getDataSource().getConnection();
+  }
+
+  static synchronized DataSource getDataSource() {
+    if (dataSource == null) {
+      dataSource = new HikariDataSource(createConfig());
+    }
+    return dataSource;
+  }
+
+  static HikariConfig createConfig() {
+    HikariConfig config = new HikariConfig();
+    config.setJdbcUrl(URL);
+    config.setUsername(USER);
+    config.setPassword(PASSWORD);
+    config.setPoolName("otp-bs-pool");
+    config.setMinimumIdle(1);
+    config.setMaximumPoolSize(2);
+    config.setConnectionTimeout(15_000);
+    // Do not connect while the class loads; open the pool on the first query.
+    config.setInitializationFailTimeout(-1);
+    return config;
+  }
+
+  /** Test hook: replaces the pool with a stub data source. */
+  static synchronized void setDataSource(DataSource newDataSource) {
+    dataSource = newDataSource;
   }
 }
