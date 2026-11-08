@@ -20,7 +20,8 @@ mvn test, mvn javafx:run
 
 ```sh
 cd Junit
-xhost +local:docker
+# The container runs as root, so allow root to connect to the X server.
+xhost +si:localuser:root
 sudo systemctl start mariadb
 sudo mariadb < DB.sql
 cd ..
@@ -33,8 +34,17 @@ docker run -it \
      -e DB_NAME=temp_temperature \
      -e DB_USER=hoopsy \
      -e DB_PASSWORD=123123 \
-     -e DISPLAY=$DISPLAY\
+     -e DISPLAY="$DISPLAY" \
      -v /tmp/.X11-unix:/tmp/.X11-unix:rw \
      --device /dev/dri \
      otp-bs:latest
 ```
+
+Alternatively, `compose.yaml` already passes `DISPLAY` and mounts the X11 socket:
+
+```sh
+xhost +si:localuser:root
+docker compose up --build
+```
+
+If JavaFX still reports `Unable to open DISPLAY`, verify that `DISPLAY` is set, that `/tmp/.X11-unix` is mounted into the container, and that `xhost` allows the container's user (`root`).
