@@ -8,7 +8,7 @@ import java.util.List;
 
 public class TemperatureTypeDao {
 
-  public List<TemperatureType> getAllUnits() {
+  public List<TemperatureType> getAllUnits(String locale) {
 
     List<TemperatureType> units = new ArrayList<>();
 
@@ -27,8 +27,7 @@ public class TemperatureTypeDao {
 
         TemperatureType unit = new TemperatureType(
             resultSet.getInt("id"),
-            resultSet.getString("name"),
-            resultSet.getString("symbol"));
+            locale);
 
         units.add(unit);
       }

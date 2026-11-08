@@ -117,6 +117,13 @@
   <artifactId>jacoco-maven-plugin</artifactId>
   <version>0.8.15</version>
 
+  <configuration>
+    <!-- The JavaFX Application class is UI wiring, not core logic. -->
+    <excludes>
+      <exclude>application/App.class</exclude>
+    </excludes>
+  </configuration>
+
   <executions>
     <!-- Attach JaCoCo agent -->
     <execution>

@@ -4,17 +4,22 @@ public class TemperatureType {
 
   private int id;
   private String name;
-  private String symbol;
+  private char symbol;
 
-  public TemperatureType(int id, String name, String symbol) {
+  public TemperatureType(int id, String locale) {
     this.id = id;
+    name = TemperatureLocaleDAO.getUnit(id, locale);
+    symbol = TemperatureLocaleDAO.getSymbol(id, locale);
+  }
+
+  public TemperatureType(String name, char symbol) {
     this.name = name;
     this.symbol = symbol;
   }
 
-  public TemperatureType(String name, String symbol) {
-    this.name = name;
-    this.symbol = symbol;
+  public void setLocale(String locale) {
+    name = TemperatureLocaleDAO.getUnit(id, locale);
+    symbol = TemperatureLocaleDAO.getSymbol(id, locale);
   }
 
   public int getId() {
@@ -25,7 +30,7 @@ public class TemperatureType {
     return name;
   }
 
-  public String getSymbol() {
+  public char getSymbol() {
     return symbol;
   }
 

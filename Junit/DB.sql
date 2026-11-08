@@ -27,4 +27,27 @@ CREATE TABLE temp_record (
     FOREIGN KEY (to_unit_id) REFERENCES temperature(id)
 );
 
+CREATE TABLE temperature_translation (
+  temp_id       INT NOT NULL,
+  lang          VARCHAR(8) NOT NULL,
+  name          VARCHAR(50) NOT NULL,
+  symbol        VARCHAR(1) NOT NULL,
 
+  FOREIGN KEY (temp_id) 
+    REFERENCES temperature(id)
+    ON DELETE CASCADE,
+  UNIQUE INDEX(temp_id, lang)
+);
+
+INSERT INTO temperature_translation (temp_id, name, symbol, lang)
+VALUES
+    (1, 'Celsius', 'C', 'en'),
+    (1, 'Celsius', 'C', 'fi'),
+    (1, 'Celsius', 'C', 'sv'),
+    (1, 'セルシウス', 'ど', 'ja'),
+    (1, 'سيلسيوس', 'م', 'ar'),
+    (2, 'فهرنهايت', 'ف', 'ar'),
+    (2, 'Fahrenheit', 'F', 'en'),
+    (2, 'Fahrenheit', 'F', 'fi'),
+    (2, 'Fahrenheit', 'F', 'se'),
+    (2, '華氏', 'F', 'ja');

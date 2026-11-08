@@ -35,9 +35,17 @@ public class App extends Application {
   private Label toLabel;
   private Button convertButton;
   private Label resultLabel;
+  private Label historyTitleLabel;
+  private ComboBox<TemperatureType> fromUnit;
+  private ComboBox<TemperatureType> toUnit;
+  private List<TemperatureType> units;
+  private VBox historyBox;
+  private Label[] history;
 
   @Override
   public void start(Stage stage) {
+    System.out.println(TemperatureLocaleDAO.getSymbol(1, "ar"));
+    System.out.println(TemperatureLocaleDAO.getUnit(1, "ar"));
     HBox hBox = new HBox();
 
     Button en = new Button("en");
@@ -93,17 +101,17 @@ public class App extends Application {
     // From unit
     fromLabel = new Label(rb.getString("from"));
 
-    ComboBox<TemperatureType> fromUnit = new ComboBox<>();
+    fromUnit = new ComboBox<>();
     fromUnit.setPrefWidth(250);
 
     // To unit
     toLabel = new Label(rb.getString("to"));
 
-    ComboBox<TemperatureType> toUnit = new ComboBox<>();
+    toUnit = new ComboBox<>();
     toUnit.setPrefWidth(250);
 
     // Load units from MariaDB
-    List<TemperatureType> units = unitDAO.getAllUnits();
+    units = unitDAO.getAllUnits(locale.getLanguage());
     fromUnit.getItems().addAll(units);
     toUnit.getItems().addAll(units);
 
@@ -134,8 +142,8 @@ public class App extends Application {
 
         double result = convertTemperature(
             temperature,
-            from.getSymbol(),
-            to.getSymbol());
+            from.getId(),
+            to.getId());
 
         resultLabel.setText(
             String.format("%s %.2f %s",
@@ -152,6 +160,8 @@ public class App extends Application {
 
         recordDAO.saveRecord(record);
 
+        recordDAO.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
+
       } catch (NumberFormatException e) {
         resultLabel.setText(rb.getString("numberFault"));
       }
@@ -161,14 +171,28 @@ public class App extends Application {
     VBox layout = new VBox();
     layout.setPadding(new Insets(20));
 
+    historyTitleLabel = new Label(rb.getString("history"));
+    historyBox = new VBox();
+    history = new Label[5];
+    for (int i = 0; i < history.length; i++) {
+      history[i] = new Label();
+      historyBox.getChildren().add(history[i]);
+      history[i].setFont(Font.font("Noto Sans CJK JP", 16));
+    }
+    recordDAO.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
+
     // Make sure you have Noto Sans CJK installed, otherwise you can't see japanese
-    title.setFont(Font.font("Noto Sans CJK JP", 16));
+    title.setFont(Font.font("Noto Sans CJK JP", 24));
     inputLabel.setFont(Font.font("Noto Sans CJK JP", 16));
     inputField.setFont(Font.font("Noto Sans CJK JP", 16));
     fromLabel.setFont(Font.font("Noto Sans CJK JP", 16));
     toLabel.setFont(Font.font("Noto Sans CJK JP", 16));
     convertButton.setFont(Font.font("Noto Sans CJK JP", 16));
     resultLabel.setFont(Font.font("Noto Sans CJK JP", 16));
+    historyTitleLabel.setFont(Font.font("Noto Sans CJK JP", 24));
+    fromUnit.setStyle("-fx-font: 16px \"Noto Sans CJK JP\";");
+    toUnit.setStyle("-fx-font: 16px \"Noto Sans CJK JP\";");
+
     layout.getChildren().addAll(
         hBox,
         title,
@@ -179,7 +203,9 @@ public class App extends Application {
         toLabel,
         toUnit,
         convertButton,
-        resultLabel);
+        resultLabel,
+        historyTitleLabel,
+        historyBox);
 
     root = new Scene(layout, 400, 450);
     stage.setTitle("Temperature Converter");
@@ -187,13 +213,13 @@ public class App extends Application {
     stage.show();
   }
 
-  private float convertTemperature(float temperature, String from, String to) {
+  private float convertTemperature(float temperature, int from, int to) {
     System.out.println(from);
-    if (from.equals("C")
-        && to.equals("F")) {
+    if (from == 1
+        && to == 2) {
       return converter.celToFahr(temperature);
-    } else if (from.equals("F")
-        && to.equals("C")) {
+    } else if (from == 2
+        && to == 1) {
       return converter.fahrToCel(temperature);
     }
     System.out.println(to);
@@ -217,5 +243,12 @@ public class App extends Application {
 
     convertButton.setText(rb.getString("convert-btn"));
     resultLabel.setText(rb.getString("result"));
+    historyTitleLabel.setText(rb.getString("history"));
+    units = unitDAO.getAllUnits(locale.getLanguage());
+    fromUnit.getItems().clear();
+    toUnit.getItems().clear();
+    fromUnit.getItems().addAll(units);
+    toUnit.getItems().addAll(units);
+    recordDAO.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
   }
 }
