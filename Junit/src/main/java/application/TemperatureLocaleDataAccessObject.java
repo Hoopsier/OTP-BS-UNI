@@ -4,15 +4,18 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-public class TemperatureLocaleDAO {
+/** Temperature Localization's Data Access Object. */
+public class TemperatureLocaleDataAccessObject {
+  /** Get the symbol of the temperature unit (C or F in english). */
   public static char getSymbol(int type, String locale) {
-    String sql = """
+    String sql =
+        """
         SELECT symbol
         FROM temperature_translation
         WHERE lang = ?
         AND temp_id = ?
         """;
-    try (Connection connection = DBConnection.getConnection();
+    try (Connection connection = DataBaseConnection.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setString(1, locale);
       statement.setInt(2, type);
@@ -32,14 +35,16 @@ public class TemperatureLocaleDAO {
     return type == 1 ? 'C' : 'F';
   }
 
+  /** Get the Unit name of the temperature Unit. (Celsius or Fahrenheit in english). */
   public static String getUnit(int type, String locale) {
-    String sql = """
+    String sql =
+        """
         SELECT name
         FROM temperature_translation
         WHERE lang = ?
         AND temp_id = ?
         """;
-    try (Connection connection = DBConnection.getConnection();
+    try (Connection connection = DataBaseConnection.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql)) {
       statement.setString(1, locale);
       statement.setInt(2, type);
@@ -56,8 +61,10 @@ public class TemperatureLocaleDAO {
     } catch (Exception e) {
       System.err.println("Failed to execute DAO: " + e);
     }
-    return type == 1 ? "Celcius" : "Fahrenheit"; // If I actually cared about scaling this, I would check the english
-                                                 // column too, but there is no need when there are 3 temperature units
-                                                 // commonly used.
+    return type == 1
+        ? "Celsius"
+        : "Fahrenheit"; // If I actually cared about scaling this, I would check the english
+    // column too, but there is no need when there are 3 temperature units
+    // commonly used.
   }
 }

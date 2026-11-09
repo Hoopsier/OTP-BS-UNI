@@ -1,25 +1,23 @@
 package application;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import javax.sql.DataSource;
-
-import com.zaxxer.hikari.HikariConfig;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.zaxxer.hikari.HikariConfig;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+
 public class DBConnectionTest {
 
   @AfterEach
   public void resetDataSource() {
-    DBConnection.setDataSource(null);
+    DataBaseConnection.setDataSource(null);
   }
 
   @Test
@@ -30,7 +28,7 @@ public class DBConnectionTest {
     String user = System.getenv().getOrDefault("DB_USER", "hoopsy");
     String password = System.getenv().getOrDefault("DB_PASSWORD", "123123");
 
-    HikariConfig config = DBConnection.createConfig();
+    HikariConfig config = DataBaseConnection.createConfig();
 
     assertEquals("jdbc:mariadb://" + host + ":" + port + "/" + database, config.getJdbcUrl());
     assertEquals(user, config.getUsername());
@@ -46,9 +44,9 @@ public class DBConnectionTest {
     Connection connection = mock(Connection.class);
     when(dataSource.getConnection()).thenReturn(connection);
 
-    DBConnection.setDataSource(dataSource);
+    DataBaseConnection.setDataSource(dataSource);
 
-    assertSame(connection, DBConnection.getConnection());
+    assertSame(connection, DataBaseConnection.getConnection());
   }
 
   @Test
@@ -57,9 +55,9 @@ public class DBConnectionTest {
     SQLException failure = new SQLException("database unavailable");
     when(dataSource.getConnection()).thenThrow(failure);
 
-    DBConnection.setDataSource(dataSource);
+    DataBaseConnection.setDataSource(dataSource);
 
-    SQLException thrown = assertThrows(SQLException.class, DBConnection::getConnection);
+    SQLException thrown = assertThrows(SQLException.class, DataBaseConnection::getConnection);
 
     assertSame(failure, thrown);
   }

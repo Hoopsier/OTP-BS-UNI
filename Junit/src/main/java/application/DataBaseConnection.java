@@ -1,20 +1,20 @@
 package application;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
-import javax.sql.DataSource;
-
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+import javax.sql.DataSource;
 
-public final class DBConnection {
+/** Database Connection object. Sets up the MariaDB connection. */
+public final class DataBaseConnection {
 
   private static final String HOST = System.getenv().getOrDefault("DB_HOST", "localhost");
 
   private static final String PORT = System.getenv().getOrDefault("DB_PORT", "3306");
 
-  private static final String DATABASE = System.getenv().getOrDefault("DB_NAME", "temp_temperature");
+  private static final String DATABASE =
+      System.getenv().getOrDefault("DB_NAME", "temp_temperature");
 
   private static final String USER = System.getenv().getOrDefault("DB_USER", "hoopsy");
 
@@ -23,16 +23,16 @@ public final class DBConnection {
   private static final String URL = "jdbc:mariadb://" + HOST + ":" + PORT + "/" + DATABASE;
 
   /**
-   * Opening a physical MariaDB connection is expensive when the app runs in
-   * minikube. MariaDB resolves the client address for every new connection and
-   * the minikube node has no PTR record, so each connection waits for a DNS
-   * timeout. Reusing pooled connections pays that cost only once.
+   * Opening a physical MariaDB connection is expensive when the app runs in minikube. MariaDB
+   * resolves the client address for every new connection and the minikube node has no PTR record,
+   * so each connection waits for a DNS timeout. Reusing pooled connections pays that cost only
+   * once.
    */
   private static DataSource dataSource;
 
-  private DBConnection() {
-  }
+  private DataBaseConnection() {}
 
+  /** Get the proxied data source. */
   public static Connection getConnection() throws SQLException {
     return getDataSource().getConnection();
   }

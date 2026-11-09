@@ -1,5 +1,8 @@
 package application;
 
+import java.util.List;
+import java.util.Locale;
+import java.util.ResourceBundle;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
@@ -13,15 +16,13 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
-
+/** Launch point for the app. Uses X11 */
 public class App extends Application {
 
   private final TemperatureConverter converter = new TemperatureConverter();
-  private final TemperatureTypeDao unitDAO = new TemperatureTypeDao();
-  private final TempRecordDao recordDAO = new TempRecordDao();
+  private final TemperatureTypeDataAccessObject unitDataAccessObject =
+      new TemperatureTypeDataAccessObject();
+  private final TempRecordDao recordDataAccessObject = new TempRecordDao();
   private Scene root;
 
   private Locale locale = Locale.of("en", "US");
@@ -40,56 +41,57 @@ public class App extends Application {
   private ComboBox<TemperatureType> toUnit;
   private List<TemperatureType> units;
   private VBox historyBox;
+  private HBox languageBox;
   private Label[] history;
 
   @Override
   public void start(Stage stage) {
-    System.out.println(TemperatureLocaleDAO.getSymbol(1, "ar"));
-    System.out.println(TemperatureLocaleDAO.getUnit(1, "ar"));
-    HBox hBox = new HBox();
+    System.out.println(TemperatureLocaleDataAccessObject.getSymbol(1, "ar"));
+    System.out.println(TemperatureLocaleDataAccessObject.getUnit(1, "ar"));
 
-    Button en = new Button("en");
-    Button fi = new Button("fi");
-    Button ja = new Button("ja");
-    Button sv = new Button("sv");
-    Button ar = new Button("ar");
+    Button enBtn = new Button("en");
 
-    en.setOnAction((event) -> {
+    enBtn.setOnAction(event -> {
       locale = Locale.of("en", "US");
       rb = ResourceBundle.getBundle("Messages", locale);
       updateLanguage();
       root.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
     });
 
-    fi.setOnAction((event) -> {
+    Button fiBtn = new Button("fi");
+    fiBtn.setOnAction(event -> {
       locale = Locale.of("fi", "FI");
       rb = ResourceBundle.getBundle("Messages", locale);
       updateLanguage();
       root.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
     });
 
-    ja.setOnAction((event) -> {
+    Button jaBtn = new Button("ja");
+    jaBtn.setOnAction(event -> {
       locale = Locale.of("ja", "JP");
       rb = ResourceBundle.getBundle("Messages", locale);
       updateLanguage();
       root.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
     });
 
-    sv.setOnAction((event) -> {
+    Button svBtn = new Button("sv");
+    svBtn.setOnAction(event -> {
       locale = Locale.of("sv", "SV");
       rb = ResourceBundle.getBundle("Messages", locale);
       updateLanguage();
       root.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
     });
 
-    ar.setOnAction((event) -> {
+    Button arBtn = new Button("ar");
+    arBtn.setOnAction(event -> {
       locale = Locale.of("ar", "AE");
       rb = ResourceBundle.getBundle("Messages", locale);
       updateLanguage();
       root.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
     });
 
-    hBox.getChildren().addAll(en, fi, ja, sv, ar);
+    languageBox = new HBox();
+    languageBox.getChildren().addAll(enBtn, fiBtn, jaBtn, svBtn, arBtn);
 
     title = new Label(rb.getString("title"));
 
@@ -111,7 +113,7 @@ public class App extends Application {
     toUnit.setPrefWidth(250);
 
     // Load units from MariaDB
-    units = unitDAO.getAllUnits(locale.getLanguage());
+    units = unitDataAccessObject.getAllUnits(locale.getLanguage());
     fromUnit.getItems().addAll(units);
     toUnit.getItems().addAll(units);
 
@@ -129,7 +131,7 @@ public class App extends Application {
     resultLabel = new Label(rb.getString("result"));
 
     // Button action
-    convertButton.setOnAction((event) -> {
+    convertButton.setOnAction(event -> {
       try {
         float temperature = Float.parseFloat(inputField.getText());
         TemperatureType from = fromUnit.getValue();
@@ -140,27 +142,17 @@ public class App extends Application {
           return;
         }
 
-        double result = convertTemperature(
-            temperature,
-            from.getId(),
-            to.getId());
+        double result = convertTemperature(temperature, from.getId(), to.getId());
 
         resultLabel.setText(
-            String.format("%s %.2f %s",
-                rb.getString("result"),
-                result,
-                to.getSymbol()));
+            String.format("%s %.2f %s", rb.getString("result"), result, to.getSymbol()));
 
         // Save conversion to MariaDB
-        TempRecord record = new TempRecord(
-            temperature,
-            result,
-            from.getId(),
-            to.getId());
+        TempRecord record = new TempRecord(temperature, result, from.getId(), to.getId());
 
-        recordDAO.saveRecord(record);
+        recordDataAccessObject.saveRecord(record);
 
-        recordDAO.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
+        recordDataAccessObject.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
 
       } catch (NumberFormatException e) {
         resultLabel.setText(rb.getString("numberFault"));
@@ -179,7 +171,7 @@ public class App extends Application {
       historyBox.getChildren().add(history[i]);
       history[i].setFont(Font.font("Noto Sans CJK JP", 16));
     }
-    recordDAO.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
+    recordDataAccessObject.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
 
     // Make sure you have Noto Sans CJK installed, otherwise you can't see japanese
     title.setFont(Font.font("Noto Sans CJK JP", 24));
@@ -193,19 +185,21 @@ public class App extends Application {
     fromUnit.setStyle("-fx-font: 16px \"Noto Sans CJK JP\";");
     toUnit.setStyle("-fx-font: 16px \"Noto Sans CJK JP\";");
 
-    layout.getChildren().addAll(
-        hBox,
-        title,
-        inputLabel,
-        inputField,
-        fromLabel,
-        fromUnit,
-        toLabel,
-        toUnit,
-        convertButton,
-        resultLabel,
-        historyTitleLabel,
-        historyBox);
+    layout
+        .getChildren()
+        .addAll(
+            languageBox,
+            title,
+            inputLabel,
+            inputField,
+            fromLabel,
+            fromUnit,
+            toLabel,
+            toUnit,
+            convertButton,
+            resultLabel,
+            historyTitleLabel,
+            historyBox);
 
     root = new Scene(layout, 400, 450);
     stage.setTitle("Temperature Converter");
@@ -215,12 +209,10 @@ public class App extends Application {
 
   private float convertTemperature(float temperature, int from, int to) {
     System.out.println(from);
-    if (from == 1
-        && to == 2) {
-      return converter.celToFahr(temperature);
-    } else if (from == 2
-        && to == 1) {
-      return converter.fahrToCel(temperature);
+    if (from == 1 && to == 2) {
+      return converter.celsiusToFahrenheit(temperature);
+    } else if (from == 2 && to == 1) {
+      return converter.fahrenheitToCelsius(temperature);
     }
     System.out.println(to);
 
@@ -228,6 +220,7 @@ public class App extends Application {
     return temperature;
   }
 
+  /** Main method. Simply calls launch for the JavaFX application */
   public static void main(String[] args) {
     launch(args);
   }
@@ -244,11 +237,11 @@ public class App extends Application {
     convertButton.setText(rb.getString("convert-btn"));
     resultLabel.setText(rb.getString("result"));
     historyTitleLabel.setText(rb.getString("history"));
-    units = unitDAO.getAllUnits(locale.getLanguage());
+    units = unitDataAccessObject.getAllUnits(locale.getLanguage());
     fromUnit.getItems().clear();
     toUnit.getItems().clear();
     fromUnit.getItems().addAll(units);
     toUnit.getItems().addAll(units);
-    recordDAO.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
+    recordDataAccessObject.setLastFiveRecordsLabels(history, locale.getLanguage(), rb);
   }
 }

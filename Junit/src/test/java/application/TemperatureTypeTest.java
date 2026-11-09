@@ -1,10 +1,10 @@
 package application;
 
-import org.junit.jupiter.api.Test;
-import org.mockito.MockedStatic;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
+
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 
 public class TemperatureTypeTest {
 
@@ -19,9 +19,10 @@ public class TemperatureTypeTest {
 
   @Test
   public void shouldLoadLocalizedNameAndSymbolForLocale() {
-    try (MockedStatic<TemperatureLocaleDAO> locale = mockStatic(TemperatureLocaleDAO.class)) {
-      locale.when(() -> TemperatureLocaleDAO.getUnit(1, "ja")).thenReturn("セルシウス");
-      locale.when(() -> TemperatureLocaleDAO.getSymbol(1, "ja")).thenReturn('ど');
+    try (MockedStatic<TemperatureLocaleDataAccessObject> locale =
+        mockStatic(TemperatureLocaleDataAccessObject.class)) {
+      locale.when(() -> TemperatureLocaleDataAccessObject.getUnit(1, "ja")).thenReturn("セルシウス");
+      locale.when(() -> TemperatureLocaleDataAccessObject.getSymbol(1, "ja")).thenReturn('ど');
 
       TemperatureType type = new TemperatureType(1, "ja");
 
@@ -33,14 +34,15 @@ public class TemperatureTypeTest {
 
   @Test
   public void shouldReloadNameAndSymbolWhenLocaleChanges() {
-    try (MockedStatic<TemperatureLocaleDAO> locale = mockStatic(TemperatureLocaleDAO.class)) {
-      locale.when(() -> TemperatureLocaleDAO.getUnit(1, "en")).thenReturn("Celsius");
-      locale.when(() -> TemperatureLocaleDAO.getSymbol(1, "en")).thenReturn('C');
+    try (MockedStatic<TemperatureLocaleDataAccessObject> locale =
+        mockStatic(TemperatureLocaleDataAccessObject.class)) {
+      locale.when(() -> TemperatureLocaleDataAccessObject.getUnit(1, "en")).thenReturn("Celsius");
+      locale.when(() -> TemperatureLocaleDataAccessObject.getSymbol(1, "en")).thenReturn('C');
 
       TemperatureType type = new TemperatureType(1, "en");
 
-      locale.when(() -> TemperatureLocaleDAO.getUnit(1, "ja")).thenReturn("摂氏");
-      locale.when(() -> TemperatureLocaleDAO.getSymbol(1, "ja")).thenReturn('C');
+      locale.when(() -> TemperatureLocaleDataAccessObject.getUnit(1, "ja")).thenReturn("摂氏");
+      locale.when(() -> TemperatureLocaleDataAccessObject.getSymbol(1, "ja")).thenReturn('C');
 
       type.setLocale("ja");
 

@@ -7,24 +7,22 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import javafx.scene.control.Label;
 
 public class TempRecordDao {
 
-  private record HistoryRow(double inputValue, double outputValue, int fromId, int toId) {
-  }
+  private record HistoryRow(double inputValue, double outputValue, int fromId, int toId) {}
 
   public void saveRecord(TempRecord record) {
 
-    String sql = """
+    String sql =
+        """
         INSERT INTO temp_record
         (input_value, output_value, from_unit_id, to_unit_id)
         VALUES (?, ?, ?, ?)
         """;
 
-    try (
-        Connection connection = DBConnection.getConnection();
+    try (Connection connection = DataBaseConnection.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql)) {
 
       statement.setDouble(1, record.getInputValue());
@@ -43,7 +41,8 @@ public class TempRecordDao {
   }
 
   public void setLastFiveRecordsLabels(Label[] labels, String locale, ResourceBundle rb) {
-    String sql = """
+    String sql =
+        """
         SELECT input_value, output_value, from_unit_id, to_unit_id
         FROM temp_record
         ORDER BY id DESC
@@ -51,17 +50,17 @@ public class TempRecordDao {
         """;
     List<HistoryRow> rows = new ArrayList<>();
 
-    try (
-        Connection connection = DBConnection.getConnection();
+    try (Connection connection = DataBaseConnection.getConnection();
         PreparedStatement statement = connection.prepareStatement(sql);
         ResultSet rs = statement.executeQuery()) {
 
       while (rs.next() && rows.size() < labels.length) {
-        rows.add(new HistoryRow(
-            rs.getDouble("input_value"),
-            rs.getDouble("output_value"),
-            rs.getInt("from_unit_id"),
-            rs.getInt("to_unit_id")));
+        rows.add(
+            new HistoryRow(
+                rs.getDouble("input_value"),
+                rs.getDouble("output_value"),
+                rs.getInt("from_unit_id"),
+                rs.getInt("to_unit_id")));
       }
     } catch (Exception e) {
 
@@ -69,18 +68,23 @@ public class TempRecordDao {
       return;
     }
 
-    // Localize after the query is closed so the lookups reuse the pooled
+    // Localize after the query is closed so the look ups reuse the pooled
     // connection instead of opening a second one.
     int i = 0;
     for (HistoryRow row : rows) {
-      String fromUnit = TemperatureLocaleDAO.getUnit(row.fromId(), locale);
-      String toUnit = TemperatureLocaleDAO.getUnit(row.toId(), locale);
-      String outputSymbol = String.valueOf(TemperatureLocaleDAO.getSymbol(row.toId(), locale));
+      String fromUnit = TemperatureLocaleDataAccessObject.getUnit(row.fromId(), locale);
+      String toUnit = TemperatureLocaleDataAccessObject.getUnit(row.toId(), locale);
+      String outputSymbol =
+          String.valueOf(TemperatureLocaleDataAccessObject.getSymbol(row.toId(), locale));
 
-      String text = MessageFormat.format(
-          rb.getString("history_format"),
-          String.valueOf(row.inputValue()), fromUnit, toUnit,
-          String.valueOf(Math.round(row.outputValue())), outputSymbol);
+      String text =
+          MessageFormat.format(
+              rb.getString("history_format"),
+              String.valueOf(row.inputValue()),
+              fromUnit,
+              toUnit,
+              String.valueOf(Math.round(row.outputValue())),
+              outputSymbol);
       labels[i].setText(text);
       i++;
     }
