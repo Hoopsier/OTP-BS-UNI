@@ -2,6 +2,8 @@ FROM maven:3.9-eclipse-temurin-21
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   openjfx \
+  fonts-noto-cjk \
+  fontconfig \
   libgtk-3-0 \
   libgl1-mesa-dri \
   libgl1 \

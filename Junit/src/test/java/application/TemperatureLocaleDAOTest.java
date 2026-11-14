@@ -65,7 +65,7 @@ public class TemperatureLocaleDAOTest {
   }
 
   @ParameterizedTest(name = "type {0} falls back to symbol {1}")
-  @CsvSource({"1, C", "2, F", "3, F"})
+  @CsvSource({ "1, C", "2, F", "3, F" })
   public void shouldFallBackToDefaultSymbolWhenNoTranslationExists(int type, char expected)
       throws Exception {
     Connection connection = mock(Connection.class);
@@ -148,7 +148,7 @@ public class TemperatureLocaleDAOTest {
   }
 
   @ParameterizedTest(name = "type {0} falls back to unit {1}")
-  @CsvSource({"1, Celcius", "2, Fahrenheit", "3, Fahrenheit"})
+  @CsvSource({ "1, Celsius", "2, Fahrenheit", "3, Fahrenheit" })
   public void shouldFallBackToDefaultUnitWhenNoTranslationExists(int type, String expected)
       throws Exception {
     Connection connection = mock(Connection.class);
@@ -178,7 +178,7 @@ public class TemperatureLocaleDAOTest {
       when(resultSet.next()).thenReturn(true);
       when(resultSet.getString("name")).thenReturn(null);
 
-      assertEquals("Celcius", TemperatureLocaleDataAccessObject.getUnit(1, "en"));
+      assertEquals("Celsius", TemperatureLocaleDataAccessObject.getUnit(1, "en"));
     }
   }
 
@@ -206,7 +206,7 @@ public class TemperatureLocaleDAOTest {
           .thenThrow(new SQLException("database unavailable"));
 
       TestOutput.silence(() -> {
-        assertEquals("Celcius", TemperatureLocaleDataAccessObject.getUnit(1, "en"));
+        assertEquals("Celsius", TemperatureLocaleDataAccessObject.getUnit(1, "en"));
         assertEquals("Fahrenheit", TemperatureLocaleDataAccessObject.getUnit(2, "en"));
       });
     }
@@ -223,7 +223,7 @@ public class TemperatureLocaleDAOTest {
       when(statement.executeQuery()).thenThrow(new SQLException("query failed"));
 
       TestOutput.silence(
-          () -> assertEquals("Celcius", TemperatureLocaleDataAccessObject.getUnit(1, "en")));
+          () -> assertEquals("Celsius", TemperatureLocaleDataAccessObject.getUnit(1, "en")));
     }
 
     verify(statement).close();
